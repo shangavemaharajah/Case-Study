@@ -1,4 +1,3 @@
-// src/components/ProductForm.jsx
 import React, { useState, useContext } from "react";
 import { ProductContext } from "../context/ProductContext";
 import { useNavigate } from "react-router-dom";
@@ -11,16 +10,28 @@ const ProductForm = () => {
     content: "",
   });
 
+  const [imagePreview, setImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
   const { addProduct } = useContext(ProductContext);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === "file" ? files[0] : value,
-    });
+
+    if (name === "file") {
+      const file = files[0];
+      setFormData({ ...formData, file });
+
+      // Create preview URL
+      if (file) {
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreview(previewUrl);
+      } else {
+        setImagePreview(null);
+      }
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = (e) => {
@@ -36,7 +47,7 @@ const ProductForm = () => {
 
     if (Object.keys(validationErrors).length === 0) {
       addProduct(formData);
-      navigate("/products"); // redirect to product list page
+      navigate("/products");
     }
   };
 
@@ -76,12 +87,24 @@ const ProductForm = () => {
           <input
             type="file"
             name="file"
+            accept="image/*"
             onChange={handleChange}
             className={`w-full border rounded px-3 py-2 focus:outline-none ${
               errors.file ? "border-red-500" : "border-gray-300"
             }`}
           />
           {errors.file && <p className="text-red-500 text-sm">{errors.file}</p>}
+
+          {/* 👇 Image Preview */}
+          {imagePreview && (
+            <div className="mt-2">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-auto max-h-64 object-contain border border-gray-300 rounded"
+              />
+            </div>
+          )}
 
           <textarea
             name="content"
