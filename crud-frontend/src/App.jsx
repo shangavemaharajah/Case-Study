@@ -1,31 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import ProductForm from './components/ProductForm';
-import ProductList from './components/ProductList';
-import axios from 'axios';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ProductForm from "./components/ProductForm";
+import ProductList from "./components/ProductList";
+import { ProductProvider } from "./context/ProductContext";
 
-const App = () => {
-  const [products, setProducts] = useState([]);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await axios.get('http://localhost:8080/api/products');
-      setProducts(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
+function App() {
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-4">CRUD Application</h1>
-      <ProductForm fetchProducts={fetchProducts} />
-      <ProductList fetchProducts={fetchProducts} products={products} />
-    </div>
+    <ProductProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<ProductForm />} />
+          <Route path="/products" element={<ProductList />} />
+        </Routes>
+      </Router>
+    </ProductProvider>
   );
-};
+}
 
 export default App;

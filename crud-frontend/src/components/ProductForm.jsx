@@ -1,59 +1,106 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+// src/components/ProductForm.jsx
+import React, { useState, useContext } from "react";
+import { ProductContext } from "../context/ProductContext";
+import { useNavigate } from "react-router-dom";
 
-const ProductForm = ({ fetchProducts }) => {
-  const [product, setProduct] = useState({
-    name: '',
-    price: '',
-    description: ''
+const ProductForm = () => {
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "",
+    file: null,
+    content: "",
   });
 
+  const [errors, setErrors] = useState({});
+  const { addProduct } = useContext(ProductContext);
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProduct({ ...product, [name]: value });
+    const { name, value, files } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === "file" ? files[0] : value,
+    });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      await axios.post('http://localhost:8080/api/products', product);
-      fetchProducts();
-      setProduct({ name: '', price: '', description: '' });
-    } catch (error) {
-      console.error(error);
+    const validationErrors = {};
+
+    if (!formData.title.trim()) validationErrors.title = "The title field is required.";
+    if (!formData.category.trim()) validationErrors.category = "The category field is required.";
+    if (!formData.file) validationErrors.file = "The file field is required.";
+    if (!formData.content.trim()) validationErrors.content = "The content field is required.";
+
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length === 0) {
+      addProduct(formData);
+      navigate("/products"); // redirect to product list page
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mb-6">
-      <input
-        type="text"
-        name="name"
-        value={product.name}
-        onChange={handleChange}
-        placeholder="Product Name"
-        className="border p-2 w-full"
-        required
-      />
-      <input
-        type="number"
-        name="price"
-        value={product.price}
-        onChange={handleChange}
-        placeholder="Product Price"
-        className="border p-2 w-full"
-        required
-      />
-      <textarea
-        name="description"
-        value={product.description}
-        onChange={handleChange}
-        placeholder="Product Description"
-        className="border p-2 w-full"
-        required
-      />
-      <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded">Add Product</button>
-    </form>
+    <div className="max-w-2xl mx-auto p-4">
+      <h1 className="text-3xl font-bold text-blue-600 mb-2">Create a New Post</h1>
+      <hr className="mb-4 border-gray-300" />
+      <div className="bg-white rounded shadow-md overflow-hidden">
+        <div className="bg-blue-600 text-white text-xl font-bold p-4">
+          Add New Post
+        </div>
+        <form className="p-6 space-y-4" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="title"
+            placeholder="Title"
+            value={formData.title}
+            onChange={handleChange}
+            className={`w-full border rounded px-3 py-2 focus:outline-none ${
+              errors.title ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
+
+          <input
+            type="text"
+            name="category"
+            placeholder="Category"
+            value={formData.category}
+            onChange={handleChange}
+            className={`w-full border rounded px-3 py-2 focus:outline-none ${
+              errors.category ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
+
+          <input
+            type="file"
+            name="file"
+            onChange={handleChange}
+            className={`w-full border rounded px-3 py-2 focus:outline-none ${
+              errors.file ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.file && <p className="text-red-500 text-sm">{errors.file}</p>}
+
+          <textarea
+            name="content"
+            placeholder="Post Content"
+            value={formData.content}
+            onChange={handleChange}
+            rows="5"
+            className={`w-full border rounded px-3 py-2 focus:outline-none ${
+              errors.content ? "border-red-500" : "border-gray-300"
+            }`}
+          ></textarea>
+          {errors.content && <p className="text-red-500 text-sm">{errors.content}</p>}
+
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Add Post
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 
