@@ -1,6 +1,5 @@
 package com.paf.server.filter;
 
-
 import com.paf.server.service.JwtService;
 import com.paf.server.service.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
@@ -18,9 +17,9 @@ import java.io.IOException;
 
 @Configuration
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtService jwtService;
     private final UserDetailsServiceImpl userDetailsService;
-
 
     public JwtAuthenticationFilter(JwtService jwtService, UserDetailsServiceImpl userDetailsService) {
         this.jwtService = jwtService;
@@ -28,40 +27,56 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        System.out.println("AuthHeader: " + authHeader);
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
-        if(authHeader == null || !authHeader.startsWith("Bearer")) {
-            System.out.println("No token found in Authenticated header");
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("No token found in Authorization header.");
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = authHeader.substring(7);
-        System.out.println("Filter page token : "+token);
+        System.out.println("Extracted JWT token: " + token);
 
         String username = jwtService.extractUsername(token);
-        System.out.println("Username in auth filtering: " + username);
+        System.out.println("Username from token: " + username);
 
-
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            System.out.println("User Details: " + userDetails);
-            System.out.println("Is token valid: " + jwtService.isValid(token, userDetails));
+            System.out.println("User details found: " + userDetails.getUsername());
 
-            if (jwtService.isValid(token, userDetails)) {
+            boolean isValid = jwtService.isValid(token, userDetails);
+            System.out.println("Is token valid: " + isValid);
+
+            if (isValid) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
+                        userDetails, null, userDetails.getAuthorities());
 
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+
+        // Skip filtering for public endpoints
+        return path.startsWith("/question/")
+                || path.startsWith("/login/")
+                || path.startsWith("/register/")
+                || path.startsWith("/refresh_token/")
+                || path.startsWith("/swagger-ui/")
+                || path.startsWith("/v3/api-docs/")
+                || path.startsWith("/swagger-ui.html");
+
     }
 }

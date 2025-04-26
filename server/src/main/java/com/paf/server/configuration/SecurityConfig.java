@@ -40,6 +40,7 @@ public class SecurityConfig {
                     corsConfig.setAllowedOrigins(List.of("http://localhost:5173"));
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     corsConfig.setAllowedHeaders(List.of("*"));
+                    corsConfig.setExposedHeaders(List.of("Authorization"));
                     corsConfig.setAllowCredentials(true);
                     return corsConfig;
                 }))
@@ -49,8 +50,10 @@ public class SecurityConfig {
                                         "/login/**",
                                         "/register/**",
                                         "/refresh_token/**",
-                                        "/products/**",
-                                        "/OrderPlace/**"
+                                        "/question/**",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html"
                                 )
                                 .permitAll()
                                 .anyRequest()
