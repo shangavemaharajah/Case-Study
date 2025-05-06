@@ -4,7 +4,7 @@ import {
   FaUser,
   FaBook,
   FaBell,
-  FaEnvelope,
+  FaChalkboardTeacher ,
   FaNewspaper,
   FaClipboard,
 } from "react-icons/fa";
@@ -16,7 +16,7 @@ const navItems = [
   { icon: FaUser, text: "Profile", path: "/profile" },
   { icon: FaBook, text: "Courses", path: "/course" },
   { icon: FaBell, text: "Notifications", path: "/notification" },
-  { icon: FaEnvelope, text: "Messages", path: "/message" },
+  { icon: FaChalkboardTeacher, text: "RoadMap", path: "/roadmap" },
   { icon: FaClipboard, text: "Quiz", path: "/quiz" },
 ];
 
