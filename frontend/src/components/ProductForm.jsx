@@ -1,129 +1,168 @@
-import React, { useState, useContext } from "react";
-import { ProductContext } from "../context/ProductContext";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import axios from 'axios';
 
-const ProductForm = () => {
-  const [formData, setFormData] = useState({
-    title: "",
-    category: "",
-    file: null,
-    content: "",
+const ProductForm = ({ fetchProducts }) => {
+  const [product, setProduct] = useState({
+    title: '',
+    price: '',
+    description: '',
+    category: '',
+    urlType: '',
   });
-
-  const [imagePreview, setImagePreview] = useState(null);
-  const [errors, setErrors] = useState({});
-  const { addProduct } = useContext(ProductContext);
-  const navigate = useNavigate();
+  const [file, setFile] = useState(null); // for local file
+  const [previewUrl, setPreviewUrl] = useState(null); // for preview
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
+    const { name, value } = e.target;
+    setProduct({ ...product, [name]: value });
+  };
 
-    if (name === "file") {
-      const file = files[0];
-      setFormData({ ...formData, file });
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
 
-      // Create preview URL
-      if (file) {
-        const previewUrl = URL.createObjectURL(file);
-        setImagePreview(previewUrl);
-      } else {
-        setImagePreview(null);
-      }
+    if (selectedFile) {
+      setPreviewUrl(URL.createObjectURL(selectedFile)); // create local preview URL
     } else {
-      setFormData({ ...formData, [name]: value });
+      setPreviewUrl(null);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationErrors = {};
+    try {
+      const formData = new FormData();
+      formData.append('title', product.title);
+      formData.append('price', product.price);
+      formData.append('description', product.description);
+      formData.append('category', product.category);
+      formData.append('urlType', product.urlType);
+      if (file) {
+        formData.append('file', file); // add file to the form data
+      }
 
-    if (!formData.title.trim()) validationErrors.title = "The title field is required.";
-    if (!formData.category.trim()) validationErrors.category = "The category field is required.";
-    if (!formData.file) validationErrors.file = "The file field is required.";
-    if (!formData.content.trim()) validationErrors.content = "The content field is required.";
+      await axios.post('http://localhost:8080/api/products', formData, {
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-    setErrors(validationErrors);
+      fetchProducts();
+      setProduct({
+        title: '',
+        price: '',
+        description: '',
+        category: '',
+        urlType: '',
+      });
+      setFile(null);
+      setPreviewUrl(null);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-    if (Object.keys(validationErrors).length === 0) {
-      addProduct(formData);
-      navigate("/products");
+  const renderPreview = () => {
+    if (!previewUrl) return null;
+
+    if (product.urlType === 'image') {
+      return (
+        <img
+          src={previewUrl}
+          alt="Preview"
+          className="w-full h-48 object-cover rounded mt-2"
+        />
+      );
+    } else if (product.urlType === 'video') {
+      return (
+        <video
+          src={previewUrl}
+          controls
+          className="w-full h-48 object-cover rounded mt-2"
+        />
+      );
+    } else {
+      return null;
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-3xl font-bold text-blue-600 mb-2">Create a New Post</h1>
-      <hr className="mb-4 border-gray-300" />
-      <div className="bg-white rounded shadow-md overflow-hidden">
-        <div className="bg-blue-600 text-white text-xl font-bold p-4">
-          Add New Post
-        </div>
-        <form className="p-6 space-y-4" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="title"
-            placeholder="Title"
-            value={formData.title}
-            onChange={handleChange}
-            className={`w-full border rounded px-3 py-2 focus:outline-none ${
-              errors.title ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
+    <form onSubmit={handleSubmit} className="space-y-4 mb-6 bg-white p-6 rounded shadow">
+      <h2 className="text-2xl font-bold mb-4 text-center">Add New Product</h2>
 
-          <input
-            type="text"
-            name="category"
-            placeholder="Category"
-            value={formData.category}
-            onChange={handleChange}
-            className={`w-full border rounded px-3 py-2 focus:outline-none ${
-              errors.category ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
+      <input
+        type="text"
+        name="title"
+        value={product.title}
+        onChange={handleChange}
+        placeholder="Product Title"
+        className="border p-2 w-full rounded"
+        required
+      />
+      
+      <input
+        type="number"
+        name="price"
+        value={product.price}
+        onChange={handleChange}
+        placeholder="Price (in USD)"
+        className="border p-2 w-full rounded"
+        required
+      />
 
-          <input
-            type="file"
-            name="file"
-            accept="image/*"
-            onChange={handleChange}
-            className={`w-full border rounded px-3 py-2 focus:outline-none ${
-              errors.file ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          {errors.file && <p className="text-red-500 text-sm">{errors.file}</p>}
+      <textarea
+        name="description"
+        value={product.description}
+        onChange={handleChange}
+        placeholder="Product Description"
+        className="border p-2 w-full rounded"
+        required
+      />
 
-          {/* 👇 Image Preview */}
-          {imagePreview && (
-            <div className="mt-2">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-full h-auto max-h-64 object-contain border border-gray-300 rounded"
-              />
-            </div>
-          )}
+      <select
+        name="category"
+        value={product.category}
+        onChange={handleChange}
+        className="border p-2 w-full rounded"
+        required
+      >
+        <option value="">Select Category</option>
+        <option value="electronics">Electronics</option>
+        <option value="books">Books</option>
+        <option value="clothing">Clothing</option>
+        <option value="furniture">Furniture</option>
+        <option value="other">Other</option>
+      </select>
 
-          <textarea
-            name="content"
-            placeholder="Post Content"
-            value={formData.content}
-            onChange={handleChange}
-            rows="5"
-            className={`w-full border rounded px-3 py-2 focus:outline-none ${
-              errors.content ? "border-red-500" : "border-gray-300"
-            }`}
-          ></textarea>
-          {errors.content && <p className="text-red-500 text-sm">{errors.content}</p>}
+      <select
+        name="urlType"
+        value={product.urlType}
+        onChange={handleChange}
+        className="border p-2 w-full rounded"
+        required
+      >
+        <option value="">Select URL Type</option>
+        <option value="image">Image</option>
+        <option value="video">Video</option>
+      </select>
 
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Add Post
-          </button>
-        </form>
-      </div>
-    </div>
+      {/* File Input */}
+      <input
+        type="file"
+        accept={product.urlType === 'image' ? 'image/*' : product.urlType === 'video' ? 'video/*' : ''}
+        onChange={handleFileChange}
+        className="border p-2 w-full rounded"
+        required
+      />
+
+      {/* Preview */}
+      {renderPreview()}
+
+      <button
+        type="submit"
+        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded w-full mt-4"
+      >
+        Add Product
+      </button>
+    </form>
   );
 };
 
