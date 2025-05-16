@@ -276,7 +276,7 @@ const Profile = () => {
           {/* Profile Header */}
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold">John Doe</h2>
-            <p className="text-gray-500">221 Posts</p>
+            <p className="text-gray-500">221 Post</p>
             <img
               src="https://images.pexels.com/photos/769772/pexels-photo-769772.jpeg?auto=compress&cs=tinysrgb&w=600"
               alt="Cover"
