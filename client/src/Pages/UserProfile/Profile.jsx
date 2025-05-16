@@ -1,34 +1,260 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
-  FaUser,
-  FaBook,
-  FaBell,
-  FaEnvelope,
-  FaSearch,
-  FaNewspaper,
-  FaEllipsisH,
   FaMapMarkerAlt,
   FaLink,
   FaCalendarAlt,
   FaComment,
   FaShareAlt,
   FaHeart,
+  FaEdit,
+  FaTrash,
 } from "react-icons/fa";
 import Post from "../../Components/PostComponentProfile/post";
 import { motion } from "framer-motion";
+import { useAuthContext } from "../../Hook/UseAuthContext";
 
-
+const BASE_URL = import.meta.env.VITE_FRONT_END_API_URL;
 
 const Profile = () => {
+  const { user } = useAuthContext();
+  const [dataAssign, setDataAssign] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editForm, setEditForm] = useState({ title: "", caption: "", linkRef: "" });
+
+  const userid = user?.id;
+  const token = user?.accessToken;
+
+  const getAllPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}/post/all`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch posts");
+
+      const data = await response.json();
+      setDataAssign(data);
+      setError(null);
+    } catch (error) {
+      console.error("Get All Questions Error:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) getAllPosts();
+  }, [token]);
+
+  const formatDate = (dateString) => {
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const handleDelete = async (postId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`${BASE_URL}/post/delete/${postId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+      getAllQuestions();
+    } catch (err) {
+      console.error("Delete error:", err.message);
+    }
+  };
+
+  const handleEdit = (post) => {
+    setEditingPostId(post.id);
+    setEditForm({ title: post.title || "", caption: post.caption || "", linkRef: post.linkRef || "" });
+  };
+
+  const handleSave = async (postId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/post/update/${postId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      if (!res.ok) throw new Error("Update failed");
+
+      setEditingPostId(null);
+      setEditForm({ title: "", caption: "", linkRef: "" });
+      getAllQuestions();
+    } catch (err) {
+      console.error("Update error:", err.message);
+    }
+  };
+
+  const renderPosts = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center py-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+          <p>Error loading posts: {error}</p>
+          <button
+            onClick={getAllQuestions}
+            className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    if (dataAssign.length === 0) {
+      return (
+        <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded">
+          <p>No posts found. Be the first to share something!</p>
+        </div>
+      );
+    }
+
+    return dataAssign.map((post) => (
+      <div key={post.id} className="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-gray-200">
+        {/* User Info */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <img
+              src={post.userProfileImage || "https://images.pexels.com/photos/769772/pexels-photo-769772.jpeg"}
+              alt="User avatar"
+              className="w-12 h-12 rounded-full object-cover"
+            />
+            <div>
+              <h3 className="text-lg font-semibold">{post.username}</h3>
+              <p className="text-sm text-gray-500">{formatDate(post.date)}</p>
+            </div>
+          </div>
+          <div className="flex gap-3 text-gray-500">
+            <button onClick={() => handleEdit(post)} className="hover:text-blue-600">
+              <FaEdit />
+            </button>
+            <button onClick={() => handleDelete(post.id)} className="hover:text-red-600">
+              <FaTrash />
+            </button>
+          </div>
+        </div>
+
+        {/* Editable Form or Content */}
+        {editingPostId === post.id ? (
+          <div className="space-y-3">
+            <input
+              type="text"
+              className="w-full p-2 border rounded"
+              value={editForm.title}
+              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+              placeholder="Edit title"
+            />
+            <textarea
+              className="w-full p-2 border rounded"
+              rows="3"
+              value={editForm.caption}
+              onChange={(e) => setEditForm({ ...editForm, caption: e.target.value })}
+              placeholder="Edit caption"
+            />
+            <input
+              type="text"
+              className="w-full p-2 border rounded"
+              value={editForm.linkRef}
+              onChange={(e) => setEditForm({ ...editForm, linkRef: e.target.value })}
+              placeholder="Edit link"
+            />
+            <div className="flex gap-2">
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                onClick={() => handleSave(post.id)}
+              >
+                Save
+              </button>
+              <button
+                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                onClick={() => setEditingPostId(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {post.title && <h2 className="text-xl font-bold text-gray-800">{post.title}</h2>}
+            {post.caption && <p className="mt-2 text-gray-700 whitespace-pre-line">{post.caption}</p>}
+
+            {post.linkRef && (
+              <div className="mt-3">
+                <a
+                  href={post.linkRef}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-blue-600 hover:underline"
+                >
+                  <FaLink className="mr-2" /> {post.linkRef}
+                </a>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Post Image */}
+        {post.imageURL && (
+          <div className="mt-4 rounded-lg overflow-hidden">
+            <img
+              src={post.imageURL}
+              alt="Post content"
+              className="w-full h-auto max-h-96 object-cover rounded-lg"
+            />
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="mt-4 flex justify-around border-t pt-3 text-gray-600">
+          <button className="flex items-center gap-1 hover:text-red-500">
+            <FaHeart /> Like
+          </button>
+          <button className="flex items-center gap-1 hover:text-blue-500">
+            <FaComment /> Comment
+          </button>
+          <button className="flex items-center gap-1 hover:text-green-500">
+            <FaShareAlt /> Share
+          </button>
+        </div>
+      </div>
+    ));
+  };
+
   return (
-    <div className="flex min-h-screen mx-1.5 bg-gray-100">
+    <div className="flex min-h-screen  bg-gray-100">
       <motion.main
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="w-[58%] ml-[20%]"
       >
-        {/* Center Content */}
-        <main className="w-[58%]  p-6 ml-[20%] ">
+        <div className="w-full p-6">
           <button className="mb-4 flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-white bg-gray-100 hover:bg-blue-500 rounded-lg shadow-md transition-all duration-300">
             <svg
               className="w-5 h-5"
@@ -47,8 +273,7 @@ const Profile = () => {
             Back
           </button>
 
-          {/* this is for news profile start */}
-
+          {/* Profile Header */}
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold">John Doe</h2>
             <p className="text-gray-500">221 Posts</p>
@@ -70,8 +295,6 @@ const Profile = () => {
                 </div>
               </div>
               <div className="flex space-x-3">
-                {/* <FaEnvelope className="text-gray-700 text-xl cursor-pointer" />
-                <FaEllipsisH className="text-gray-700 text-xl cursor-pointer" /> */}
                 <button className="bg-blue-500 text-white px-4 py-2 rounded-lg">
                   Update Profile
                 </button>
@@ -79,10 +302,11 @@ const Profile = () => {
             </div>
           </div>
 
+          {/* Profile Info */}
           <div className="w-full mt-6">
             <div className="bg-white p-5 shadow-md rounded-lg -mt-8">
               <p className="mt-2 text-gray-700">
-                We power cross‑border payments for the world’s fastest‑growing
+                We power cross‑border payments for the world's fastest‑growing
                 startups and enterprises. Send and receive instant payments
                 globally seamlessly.
               </p>
@@ -113,130 +337,10 @@ const Profile = () => {
               </p>
             </div>
           </div>
-          <div className="flex gap-3 justify-between p-4 mt-2 bg-gray-200 rounded-4xl ">
-  <button className="bg-gray-200 hover:bg-gray-300 text-sky-800 font-medium py-2 px-4 rounded-lg transition duration-150">
-    Post
-  </button>
-  <button className="bg-gray-200 hover:bg-gray-300 text-sky-800 font-medium py-2 px-4 rounded-lg transition duration-150">
-    Plan
-  </button>
-  <button className="bg-gray-200 hover:bg-gray-300 text-sky-800 font-medium py-2 px-4 rounded-lg transition duration-150">
-    Achievement
-  </button>
-  <button className="bg-gray-200 hover:bg-gray-300 text-sky-800 font-medium py-2 px-4 rounded-lg transition duration-150">
-    Course
-  </button>
-</div>
-        
-          <div className="border-b border-sky-800 p-4">
-            <Post />
-          </div>
+        </div>
 
-          {/* profile end */}
-
-          {/* ex -1 */}
-          <div className="flex mt-7">
-            <img
-              src="https://images.pexels.com/photos/769772/pexels-photo-769772.jpeg?auto=compress&cs=tinysrgb&w=600"
-              alt="Post User DP"
-              className="w-15 h-15 rounded-full"
-            />
-            <div className="bg-white p-5 w-full shadow-md rounded-lg ml-3">
-              <div className="flex items-center space-x-3">
-                <div>
-                  <h5 className="font-semibold">John Doe</h5>
-                  <p className="text-gray-500">@johndoe</p>
-                </div>
-              </div>
-              <p className="text-gray-700 mt-3 text-lg">
-                Here is an interesting post! Check out this cool link to some
-                awesome content. This resource provides valuable insights into
-                the latest trends in technology. Whether you're a beginner or an
-                expert, you'll find something exciting and informative. Don't
-                miss out on exploring new ideas and staying up-to-date with the
-                fast-paced world of innovation.
-              </p>
-              <a
-                href="https://www.example.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 mt-2 block"
-              >
-                https://www.example.com
-              </a>
-              <img
-                src="https://images.pexels.com/photos/458718/pexels-photo-458718.jpeg"
-                alt="Post Preview"
-                className="w-full h-40 object-cover rounded-lg mt-4"
-              />
-              <div className="mt-4 flex space-x-6 text-gray-500">
-                <div className="flex items-center space-x-2">
-                  <FaHeart className="text-gray-700" />
-                  <span>Like</span>
-                </div>
-                <div className="flex items-center space-x-2 text-gray-700 hover:text-blue-500">
-                  <FaComment className="text-xl" />
-                  <span>Comment</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <FaShareAlt className="text-gray-700" />
-                  <span>Share</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* ex -2 */}
-          <div className="flex mt-7">
-            <img
-              src="https://images.pexels.com/photos/769772/pexels-photo-769772.jpeg?auto=compress&cs=tinysrgb&w=600"
-              alt="Post User DP"
-              className="w-15 h-15 rounded-full"
-            />
-            <div className="bg-white p-5 w-full shadow-md rounded-lg ml-3">
-              <div className="flex items-center space-x-3">
-                <div>
-                  <h5 className="font-semibold">John Doe</h5>
-                  <p className="text-gray-500">@johndoe</p>
-                </div>
-              </div>
-              <p className="text-gray-700 mt-3 text-lg">
-                Here is an interesting post! Check out this cool link to some
-                awesome content. This resource provides valuable insights into
-                the latest trends in technology. Whether you're a beginner or an
-                expert, you'll find something exciting and informative. Don't
-                miss out on exploring new ideas and staying up-to-date with the
-                fast-paced world of innovation.
-              </p>
-              <a
-                href="https://www.example.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 mt-2 block"
-              >
-                https://www.example.com
-              </a>
-              <img
-                src="https://images.pexels.com/photos/4709285/pexels-photo-4709285.jpeg?auto=compress&cs=tinysrgb&w=600"
-                alt="Post Preview"
-                className="w-full h-40 object-cover rounded-lg mt-4"
-              />
-              <div className="mt-4 flex space-x-6 text-gray-500">
-                <div className="flex items-center space-x-2">
-                  <FaHeart className="text-gray-700" />
-                  <span>Like</span>
-                </div>
-                <div className="flex items-center space-x-2 text-gray-700 hover:text-blue-500">
-                  <FaComment className="text-xl" />
-                  <span>Comment</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <FaShareAlt className="text-gray-700" />
-                  <span>Share</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
+        <Post userId={userid} token={token} onPostCreated={getAllPosts} />
+        {renderPosts()}
       </motion.main>
     </div>
   );
