@@ -214,7 +214,7 @@ export default function PostDetail() {
     <div className="post-detail fade-in">
       {editMode ? (
         <div className="edit-post scale-in">
-          <h2>Edit Post</h2>
+          <h2>Edit course</h2>
           <div className="form-group">
             <label>Title</label>
             <input
@@ -320,7 +320,7 @@ export default function PostDetail() {
           {user?.username === post.creator?.user?.username && (
             <div className="post-actions">
               <button onClick={() => setEditMode(true)} className="btn btn-secondary">
-                ✏️ Edit Post
+                ✏️ Edit course
               </button>
               <button 
                 onClick={() => { 
@@ -415,16 +415,17 @@ export default function PostDetail() {
                           <div className="comment-actions">
                             <button 
                               onClick={() => setEditingComment(comment.id)}
-                              className="btn-link"
+                              className="btn btn-secondary"
                             >
                               ✏️ Edit
                             </button>
                             <button 
-                              onClick={() => confirmDeleteComment(comment.id)}
-                              className="btn-link text-danger"
+                            onClick={() => confirmDeleteComment(comment.id)}
+                              className="btn btn-danger"
                             >
                               🗑️ Delete
                             </button>
+
                           </div>
                         )}
                       </>

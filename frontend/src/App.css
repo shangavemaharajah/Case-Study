@@ -1,8 +1,8 @@
 /* Modern Color Variables */
 :root {
-  --primary-color: #6366f1;  /* Indigo */
-  --primary-hover: #4f46e5;
-  --secondary-color: #f3f4f6;
+  --primary-color: #0A66C2;  /* Indigo */
+  --primary-hover: #2f82d6;
+  --secondary-color: #0A66C2;
   --accent-color: #ec4899;   /* Pink for accents/highlights */
   --background-color: #f9fafb;
   --card-bg: #ffffff;
@@ -33,6 +33,7 @@ body {
   margin-bottom: 1.25rem;
   position: relative;
 }
+
 
 .form-group label {
   display: block;
@@ -96,12 +97,12 @@ body {
 }
 
 .btn-secondary {
-  background-color: var(--secondary-color);
+  background-color: var(--primary-color);
   color: var(--text-secondary);
 }
 
 .btn-secondary:hover {
-  background-color: #e5e7eb;
+  background-color: #2f82d6;
 }
 
 .btn-danger {
@@ -198,7 +199,7 @@ body {
 
 .post-card .tag,
 .tag {
-  background-color: var(--secondary-color);
+  background-color: #c9ebff;
   color: var(--primary-color);
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
@@ -307,6 +308,49 @@ body {
   margin-bottom: 2rem;
 }
 
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  text-decoration: none;
+}
+
+.navbar-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 100px;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: white;
+}
+
+.btn-blue {
+  background-color: #0A66C2;
+  transition: background-color 0.3s ease;
+  color: white;
+}
+
+.btn-blue:hover {
+  background-color: #2f82d6;
+  color: white;  
+}
+
+
 .post-detail .post-stats {
   display: flex;
   align-items: center;
@@ -347,7 +391,7 @@ body {
   resize: vertical;
   transition: all 0.2s ease;
   min-height: 100px;
-  background-color: white;
+  background-color: white !important;
 }
 
 .comments-section textarea:focus {
@@ -357,7 +401,7 @@ body {
 }
 
 .comment {
-  background-color: var(--secondary-color);
+  background-color: #c4e5f8;
   padding: 1.25rem;
   border-radius: var(--border-radius-md);
   margin-bottom: 1.25rem;
