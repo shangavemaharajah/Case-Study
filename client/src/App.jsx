@@ -20,12 +20,13 @@ import { useEffect } from "react";
 import QuizGetter from "./Pages/Quiz/QuizzGetter/QuizzGetter";
 import QuizResult from "./Pages/Quiz/QuizzResult/QuizzResult";
 import GetAllQuiz from "./Pages/Quiz/GetQuestionForEditable/GetQuestionForEditable";
+import UpdateQuestion from "./Pages/Quiz/UpdateForUserCreateQuestion/UpdateForUserCreateQuestion";
 
 function App() {
   const { user } = useAuthContext();
 
   useEffect(() => {
-    if (user && user.user) {
+    if (user?.user) {
       console.log("User from AuthContext in navbar", user);
       console.log("User id:", user.user.id);
       console.log("User email:", user.user.email);
@@ -35,51 +36,171 @@ function App() {
     }
   }, [user]);
 
-  console.log("user from app.js", user);
+  // Layout component for authenticated routes
+  const AuthenticatedLayout = ({ children }) => (
+    <div className="flex min-h-screen">
+      <div className="w-[4%]">
+        <Side user={user} />
+      </div>
+      <div className="flex-grow">
+        {children}
+      </div>
+      <div className="w-[5%]">
+        <RightSide />
+      </div>
+    </div>
+  );
 
   return (
     <Router>
       <Routes>
-        {/* If user exists, go to News, else go to SignUp */}
+        {/* Public routes */}
         <Route
           path="/signUp"
           element={user ? <Navigate to="/" /> : <SignUp />}
         />
-        {/* <Route path="/signUp" element={<SignUp />} /> */}
-
-        {/* If user exists, go to News, else go to SignIn */}
         <Route
           path="/signIn"
           element={user ? <Navigate to="/" /> : <SignIn />}
         />
-        {/* <Route path="/signIn" element={<SignIn />} /> */}
 
-        {/* Protect all other routes - redirect to SignIn if no user */}
+        {/* Protected routes */}
         <Route
-          path="/*"
+          path="/"
           element={
             user ? (
-              <div className="flex min-h-screen">
-                <div className="w-[4%] ">
-                  <Side user={user} />
-                </div>
-                <div className="flex-grow ">
-                  <Routes>
-                    <Route path="/" element={<News />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/course" element={<Course />} />
-                    <Route path="/notification" element={<Notification />} />
-                    <Route path="/message" element={<Messages />} />
-                    <Route path="/quiz" element={<Quiz />} />
-                    <Route path="/quiz-result" element={<QuizResult/>} />
-                    <Route path="/quizGetter" element={<QuizGetter />} />
-                    <Route path="/quizAllShowUser" element={<GetAllQuiz />} />
-                  </Routes>
-                </div>
-                <div className="w-[5%] ">
-                  <RightSide />
-                </div>
-              </div>
+              <AuthenticatedLayout>
+                <News />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+        
+        <Route
+          path="/profile"
+          element={
+            user ? (
+              <AuthenticatedLayout>
+                <Profile />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+        
+        <Route
+          path="/course"
+          element={
+            user ? (
+              <AuthenticatedLayout>
+                <Course />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+        
+        <Route
+          path="/notification"
+          element={
+            user ? (
+              <AuthenticatedLayout>
+                <Notification />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+        
+        <Route
+          path="/message"
+          element={
+            user ? (
+              <AuthenticatedLayout>
+                <Messages />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+        
+        <Route
+          path="/quiz"
+          element={
+            user ? (
+              <AuthenticatedLayout>
+                <Quiz />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+        
+        <Route
+          path="/quiz-result"
+          element={
+            user ? (
+              <AuthenticatedLayout>
+                <QuizResult />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+        
+        <Route
+          path="/quizGetter"
+          element={
+            user ? (
+              <AuthenticatedLayout>
+                <QuizGetter />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+        
+        <Route
+          path="/quizAllShowUser"
+          element={
+            user ? (
+              <AuthenticatedLayout>
+                <GetAllQuiz />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+        
+        <Route
+          path="/update-quiz/:id"
+          element={
+            user ? (
+              <AuthenticatedLayout>
+                <UpdateQuestion />
+              </AuthenticatedLayout>
+            ) : (
+              <Navigate to="/signIn" />
+            )
+          }
+        />
+
+        {/* Catch-all route */}
+        <Route
+          path="*"
+          element={
+            user ? (
+              <Navigate to="/" />
             ) : (
               <Navigate to="/signIn" />
             )
