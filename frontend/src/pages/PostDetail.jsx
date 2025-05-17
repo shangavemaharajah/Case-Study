@@ -234,7 +234,7 @@ export default function PostDetail() {
             />
           </div>
           <div className="form-group">
-            <label>Tags (comma separated)</label>
+            <label>Skills (comma separated)</label>
             <input
               type="text"
               value={editedPost?.tags?.join(', ') || ''}
@@ -492,4 +492,5 @@ export default function PostDetail() {
       )}
     </div>
   )
+
 }
