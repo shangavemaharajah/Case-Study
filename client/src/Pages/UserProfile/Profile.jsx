@@ -438,9 +438,12 @@ const Profile = () => {
                 </div>
               </div>
               <div className="flex space-x-3">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg">
+                <Link
+                  to="/profile/edit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                >
                   Update Profile
-                </button>
+                </Link>
               </div>
             </div>
           </div>

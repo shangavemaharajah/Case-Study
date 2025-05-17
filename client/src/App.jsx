@@ -21,6 +21,7 @@ import QuizGetter from "./Pages/Quiz/QuizzGetter/QuizzGetter";
 import QuizResult from "./Pages/Quiz/QuizzResult/QuizzResult";
 import GetAllQuiz from "./Pages/Quiz/GetQuestionForEditable/GetQuestionForEditable";
 import UpdateQuestion from "./Pages/Quiz/UpdateForUserCreateQuestion/UpdateForUserCreateQuestion";
+import EditProfilePage from "./Pages/UserProfile/EditProfilePage";
 
 function App() {
   const { user } = useAuthContext();
@@ -90,6 +91,8 @@ function App() {
             )
           }
         />
+
+        <Route path="/profile/edit" element={<EditProfilePage />} />
         
         <Route
           path="/course"
