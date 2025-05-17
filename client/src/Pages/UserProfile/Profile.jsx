@@ -9,6 +9,7 @@ import {
   FaEdit,
   FaTrash,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import Post from "../../Components/PostComponentProfile/post";
 import { motion } from "framer-motion";
 import { useAuthContext } from "../../Hook/UseAuthContext";
@@ -50,7 +51,7 @@ const Profile = () => {
       setDataAssign(data);
       setError(null);
     } catch (error) {
-      console.error("Get All Questions Error:", error);
+      console.error("Get All Posts Error:", error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -81,7 +82,7 @@ const Profile = () => {
       });
 
       if (!res.ok) throw new Error("Delete failed");
-      getAllQuestions();
+      getAllPosts(); // Changed from getAllQuestions to getAllPosts
     } catch (err) {
       console.error("Delete error:", err.message);
     }
@@ -111,7 +112,7 @@ const Profile = () => {
 
       setEditingPostId(null);
       setEditForm({ title: "", caption: "", linkRef: "" });
-      getAllQuestions();
+      getAllPosts(); // Changed from getAllQuestions to getAllPosts
     } catch (err) {
       console.error("Update error:", err.message);
     }
@@ -135,7 +136,7 @@ const Profile = () => {
         {
           id: Date.now(),
           text: newComment,
-          //  author: user?.username || "comment",
+          author: user?.username || "Anonymous",
           date: new Date().toISOString(),
         },
       ],
@@ -158,20 +159,10 @@ const Profile = () => {
         })
         .catch((err) => console.log("Error sharing:", err));
     } else {
-      // Fallback for desktop
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
         shareText + " " + shareUrl
       )}`;
-      const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-        shareUrl
-      )}`;
-      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        shareText
-      )}&url=${encodeURIComponent(shareUrl)}`;
-
-      // You could open a popup with these options or let user choose
       window.open(whatsappUrl, "_blank");
-      // Alternatively, create a share dialog with these options
     }
   };
 
@@ -189,7 +180,7 @@ const Profile = () => {
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
           <p>Error loading posts: {error}</p>
           <button
-            onClick={getAllQuestions}
+            onClick={getAllPosts}
             className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
           >
             Retry
@@ -227,20 +218,22 @@ const Profile = () => {
               <p className="text-sm text-gray-500">{formatDate(post.date)}</p>
             </div>
           </div>
-          <div className="flex gap-3 text-gray-500">
-            <button
-              onClick={() => handleEdit(post)}
-              className="hover:text-blue-600"
-            >
-              <FaEdit />
-            </button>
-            <button
-              onClick={() => handleDelete(post.id)}
-              className="hover:text-red-600"
-            >
-              <FaTrash />
-            </button>
-          </div>
+          {user?.id === post.userId && (
+            <div className="flex gap-3 text-gray-500">
+              <button
+                onClick={() => handleEdit(post)}
+                className="hover:text-blue-600"
+              >
+                <FaEdit />
+              </button>
+              <button
+                onClick={() => handleDelete(post.id)}
+                className="hover:text-red-600"
+              >
+                <FaTrash />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Editable Form or Content */}
@@ -390,7 +383,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="flex min-h-screen  bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100">
       <motion.main
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -418,8 +411,8 @@ const Profile = () => {
 
           {/* Profile Header */}
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold">John Doe</h2>
-            <p className="text-gray-500">221 Posts</p>
+            <h2 className="text-2xl font-bold">{user?.name || "John Doe"}</h2>
+            <p className="text-gray-500">{dataAssign.length} Posts</p>
             <img
               src="https://images.pexels.com/photos/769772/pexels-photo-769772.jpeg?auto=compress&cs=tinysrgb&w=600"
               alt="Cover"
@@ -428,13 +421,16 @@ const Profile = () => {
             <div className="flex items-center justify-between mt-4">
               <div className="flex items-center space-x-3">
                 <img
-                  src="https://images.pexels.com/photos/769772/pexels-photo-769772.jpeg?auto=compress&cs=tinysrgb&w=600"
+                  src={
+                    user?.profileImage ||
+                    "https://images.pexels.com/photos/769772/pexels-photo-769772.jpeg?auto=compress&cs=tinysrgb&w=600"
+                  }
                   alt="DP"
                   className="w-12 h-12 rounded-full"
                 />
                 <div>
-                  <h5 className="font-semibold">John Doe</h5>
-                  <p className="text-gray-500">@johndoe</p>
+                  <h5 className="font-semibold">{user?.name || "John Doe"}</h5>
+                  <p className="text-gray-500">@{user?.username || "johndoe"}</p>
                 </div>
               </div>
               <div className="flex space-x-3">
@@ -452,35 +448,44 @@ const Profile = () => {
           <div className="w-full mt-6">
             <div className="bg-white p-5 shadow-md rounded-lg -mt-8">
               <p className="mt-2 text-gray-700">
-                We power cross‑border payments for the world's fastest‑growing
-                startups and enterprises. Send and receive instant payments
-                globally seamlessly.
+                {user?.bio ||
+                  "We power cross‑border payments for the world's fastest‑growing startups and enterprises. Send and receive instant payments globally seamlessly."}
               </p>
               <div className="mt-3 flex space-x-4 text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <FaMapMarkerAlt />
-                  <span>London, United Kingdom</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <FaLink />
-                  <span>vertofx.com</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <FaCalendarAlt />
-                  <span>Joined March 2019</span>
-                </div>
+                {user?.location && (
+                  <div className="flex items-center space-x-1">
+                    <FaMapMarkerAlt />
+                    <span>{user.location}</span>
+                  </div>
+                )}
+                {user?.website && (
+                  <div className="flex items-center space-x-1">
+                    <FaLink />
+                    <a
+                      href={user.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                    >
+                      {user.website}
+                    </a>
+                  </div>
+                )}
+                {user?.createdAt && (
+                  <div className="flex items-center space-x-1">
+                    <FaCalendarAlt />
+                    <span>Joined {formatDate(user.createdAt)}</span>
+                  </div>
+                )}
               </div>
               <div className="mt-3 flex space-x-6 font-semibold text-gray-700">
                 <p>
-                  <span className="text-black">334</span> Following
+                  <span className="text-black">{user?.followingCount || 334}</span> Following
                 </p>
                 <p>
-                  <span className="text-black">600</span> Followers
+                  <span className="text-black">{user?.followersCount || 600}</span> Followers
                 </p>
               </div>
-              <p className="text-gray-500 mt-2">
-                Followed by Amanda, Efemena, and 7 others
-              </p>
             </div>
           </div>
         </div>
