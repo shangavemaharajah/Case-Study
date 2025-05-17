@@ -135,7 +135,7 @@ const Profile = () => {
         {
           id: Date.now(),
           text: newComment,
-          author: user?.username || "Anonymous",
+          //  author: user?.username || "comment",
           date: new Date().toISOString(),
         },
       ],
@@ -330,8 +330,8 @@ const Profile = () => {
           <button
             className={`flex items-center gap-1 ${
               likedPosts.includes(post.id)
-                ? "text-red-500"
-                : "hover:text-red-500"
+                ? "text-blue-500"
+                : "hover:text-blue-500"
             }`}
             onClick={() => handleLike(post.id)}
           >
@@ -381,7 +381,7 @@ const Profile = () => {
               onClick={() => handleAddComment(post.id)}
               className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              Post
+              Add
             </button>
           </div>
         </div>
