@@ -47,10 +47,10 @@ const Dashboard = () => {
 
   return (
     <div className="py-8 px-6 max-w-7xl mx-auto relative">
-      <h1 className="text-3xl font-bold mb-8 text-[#0a9bdf] pl-4 relative">
+      {/* <h1 className="text-3xl font-bold mb-8 text-[#0a9bdf] pl-4 relative">
         <span className="absolute left-0 top-2.5 h-2/3 w-1.5 bg-[#0a9bdf] rounded"></span>
         Learning Progress Dashboard
-      </h1>
+      </h1> */}
 
       {error && (
         <div className="p-4 rounded mb-6 bg-red-100 text-red-800 border-l-4 border-red-500 flex items-center justify-between">

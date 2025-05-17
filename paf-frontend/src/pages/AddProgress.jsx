@@ -312,10 +312,7 @@ const AddProgress = () => {
           </div>
 
           <div className="py-6 px-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold mb-6 text-[#2b6cb0] flex items-center">
-              <span className="inline-block w-5 h-0.5 bg-blue-500 mr-2 rounded"></span>
-              Template Selection
-            </h2>
+           
             <div className="mb-6">
               <label htmlFor="template" className="block mb-2 font-medium text-gray-600">Achievement Type</label>
               <select
