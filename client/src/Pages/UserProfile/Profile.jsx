@@ -21,7 +21,14 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingPostId, setEditingPostId] = useState(null);
-  const [editForm, setEditForm] = useState({ title: "", caption: "", linkRef: "" });
+  const [editForm, setEditForm] = useState({
+    title: "",
+    caption: "",
+    linkRef: "",
+  });
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [comments, setComments] = useState({});
+  const [newComment, setNewComment] = useState("");
 
   const userid = user?.id;
   const token = user?.accessToken;
@@ -60,7 +67,9 @@ const Profile = () => {
   };
 
   const handleDelete = async (postId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this post?"
+    );
     if (!confirmDelete) return;
 
     try {
@@ -80,7 +89,11 @@ const Profile = () => {
 
   const handleEdit = (post) => {
     setEditingPostId(post.id);
-    setEditForm({ title: post.title || "", caption: post.caption || "", linkRef: post.linkRef || "" });
+    setEditForm({
+      title: post.title || "",
+      caption: post.caption || "",
+      linkRef: post.linkRef || "",
+    });
   };
 
   const handleSave = async (postId) => {
@@ -101,6 +114,64 @@ const Profile = () => {
       getAllQuestions();
     } catch (err) {
       console.error("Update error:", err.message);
+    }
+  };
+
+  const handleLike = (postId) => {
+    if (likedPosts.includes(postId)) {
+      setLikedPosts(likedPosts.filter((id) => id !== postId));
+    } else {
+      setLikedPosts([...likedPosts, postId]);
+    }
+  };
+
+  const handleAddComment = (postId) => {
+    if (!newComment.trim()) return;
+
+    setComments((prev) => ({
+      ...prev,
+      [postId]: [
+        ...(prev[postId] || []),
+        {
+          id: Date.now(),
+          text: newComment,
+          author: user?.username || "Anonymous",
+          date: new Date().toISOString(),
+        },
+      ],
+    }));
+    setNewComment("");
+  };
+
+  const handleShare = (post) => {
+    const shareText = `${post.title || "Check out this post"}: ${
+      post.caption?.substring(0, 100) || ""
+    }...`;
+    const shareUrl = window.location.href;
+
+    if (navigator.share) {
+      navigator
+        .share({
+          title: post.title || "Post",
+          text: shareText,
+          url: shareUrl,
+        })
+        .catch((err) => console.log("Error sharing:", err));
+    } else {
+      // Fallback for desktop
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
+        shareText + " " + shareUrl
+      )}`;
+      const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        shareUrl
+      )}`;
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+        shareText
+      )}&url=${encodeURIComponent(shareUrl)}`;
+
+      // You could open a popup with these options or let user choose
+      window.open(whatsappUrl, "_blank");
+      // Alternatively, create a share dialog with these options
     }
   };
 
@@ -136,12 +207,18 @@ const Profile = () => {
     }
 
     return dataAssign.map((post) => (
-      <div key={post.id} className="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-gray-200">
+      <div
+        key={post.id}
+        className="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-gray-200"
+      >
         {/* User Info */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <img
-              src={post.userProfileImage || "https://images.pexels.com/photos/769772/pexels-photo-769772.jpeg"}
+              src={
+                post.userProfileImage ||
+                "https://images.pexels.com/photos/769772/pexels-photo-769772.jpeg"
+              }
               alt="User avatar"
               className="w-12 h-12 rounded-full object-cover"
             />
@@ -151,10 +228,16 @@ const Profile = () => {
             </div>
           </div>
           <div className="flex gap-3 text-gray-500">
-            <button onClick={() => handleEdit(post)} className="hover:text-blue-600">
+            <button
+              onClick={() => handleEdit(post)}
+              className="hover:text-blue-600"
+            >
               <FaEdit />
             </button>
-            <button onClick={() => handleDelete(post.id)} className="hover:text-red-600">
+            <button
+              onClick={() => handleDelete(post.id)}
+              className="hover:text-red-600"
+            >
               <FaTrash />
             </button>
           </div>
@@ -167,21 +250,27 @@ const Profile = () => {
               type="text"
               className="w-full p-2 border rounded"
               value={editForm.title}
-              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+              onChange={(e) =>
+                setEditForm({ ...editForm, title: e.target.value })
+              }
               placeholder="Edit title"
             />
             <textarea
               className="w-full p-2 border rounded"
               rows="3"
               value={editForm.caption}
-              onChange={(e) => setEditForm({ ...editForm, caption: e.target.value })}
+              onChange={(e) =>
+                setEditForm({ ...editForm, caption: e.target.value })
+              }
               placeholder="Edit caption"
             />
             <input
               type="text"
               className="w-full p-2 border rounded"
               value={editForm.linkRef}
-              onChange={(e) => setEditForm({ ...editForm, linkRef: e.target.value })}
+              onChange={(e) =>
+                setEditForm({ ...editForm, linkRef: e.target.value })
+              }
               placeholder="Edit link"
             />
             <div className="flex gap-2">
@@ -201,8 +290,14 @@ const Profile = () => {
           </div>
         ) : (
           <>
-            {post.title && <h2 className="text-xl font-bold text-gray-800">{post.title}</h2>}
-            {post.caption && <p className="mt-2 text-gray-700 whitespace-pre-line">{post.caption}</p>}
+            {post.title && (
+              <h2 className="text-xl font-bold text-gray-800">{post.title}</h2>
+            )}
+            {post.caption && (
+              <p className="mt-2 text-gray-700 whitespace-pre-line">
+                {post.caption}
+              </p>
+            )}
 
             {post.linkRef && (
               <div className="mt-3">
@@ -232,15 +327,63 @@ const Profile = () => {
 
         {/* Action Buttons */}
         <div className="mt-4 flex justify-around border-t pt-3 text-gray-600">
-          <button className="flex items-center gap-1 hover:text-red-500">
+          <button
+            className={`flex items-center gap-1 ${
+              likedPosts.includes(post.id)
+                ? "text-red-500"
+                : "hover:text-red-500"
+            }`}
+            onClick={() => handleLike(post.id)}
+          >
             <FaHeart /> Like
           </button>
-          <button className="flex items-center gap-1 hover:text-blue-500">
+          <button
+            className="flex items-center gap-1 hover:text-blue-500"
+            onClick={() =>
+              document.getElementById(`comment-input-${post.id}`)?.focus()
+            }
+          >
             <FaComment /> Comment
           </button>
-          <button className="flex items-center gap-1 hover:text-green-500">
+          <button
+            className="flex items-center gap-1 hover:text-green-500"
+            onClick={() => handleShare(post)}
+          >
             <FaShareAlt /> Share
           </button>
+        </div>
+
+        {/* Comments Section */}
+        <div className="mt-3 border-t pt-3">
+          {/* Existing Comments */}
+          {(comments[post.id] || []).map((comment) => (
+            <div key={comment.id} className="mb-2 p-2 bg-gray-50 rounded">
+              <div className="flex justify-between">
+                <span className="font-semibold">{comment.author}</span>
+                <span className="text-xs text-gray-500">
+                  {new Date(comment.date).toLocaleString()}
+                </span>
+              </div>
+              <p className="text-sm mt-1">{comment.text}</p>
+            </div>
+          ))}
+          <div className="flex gap-2 mt-3">
+            <input
+              id={`comment-input-${post.id}`}
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add a comment..."
+              className="flex-1 p-2 border rounded"
+              onKeyPress={(e) => e.key === "Enter" && handleAddComment(post.id)}
+            />
+            <button
+              onClick={() => handleAddComment(post.id)}
+              className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Post
+            </button>
+          </div>
         </div>
       </div>
     ));
